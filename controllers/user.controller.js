@@ -13,7 +13,7 @@ const config = require('./../config/config');
 const constants = require('./../config/constants');
 const generalHelper = require('./../helpers/general.helper');
 const encryptionHelper = require('./../helpers/encryption.helper');
-const User = require('./../models/user.model');
+const {userModel: User} = require('./../models/user.model');
 
 const fieldsExcluded = '-__v -password -activationToken';
 

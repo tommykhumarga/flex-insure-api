@@ -13,6 +13,8 @@ Object.keys(constants.userAuth).forEach((e, i) => {
     arrUserAuth.push(constants.userAuth[e].value);
 });
 
+exports.collectionName = 'user';
+
 const UserSchema = mongoose.Schema({
     email: {
         type: String,
@@ -71,7 +73,8 @@ const UserSchema = mongoose.Schema({
         default: false
     }
 }, {
+    collection: this.collectionName,
     timestamps: true
 });
 
-module.exports = mongoose.model('User', UserSchema);
+exports.userModel = mongoose.model(this.collectionName, UserSchema);

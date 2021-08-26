@@ -19,7 +19,7 @@ module.exports = {
         }
     },
     db: {
-        url: `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_SERVER}:${process.env.DB_PORT}}/${process.env.DB_SCHEMA}`
+        url: `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_SERVER}:${process.env.DB_PORT}}/${process.env.DB_NAME}`
     },
     smtp: {
         host: process.env.SMTP_HOST,
