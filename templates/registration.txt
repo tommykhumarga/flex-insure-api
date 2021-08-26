@@ -1,0 +1,1 @@
+Hi there!<br /><br />Thank you for your registration!<br /><br />Please click below link to activate your account<br /><br /><a href="##LINK##" target="_blank" style="padding: 10px 20px; background-color: blue; color: white;">ACTIVATE</a>
