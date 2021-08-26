@@ -27,6 +27,7 @@
     "express-validator": "^6.12.1",
     "helmet": "^4.6.0",
     "jsonwebtoken": "^8.5.1",
+    "migrate-mongo": "^8.2.3",
     "moment": "^2.29.1",
     "mongoose": "^5.13.7",
     "nodemailer": "^6.6.3",

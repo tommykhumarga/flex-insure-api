@@ -518,7 +518,6 @@ exports.create = (req, res) => {
     });
 
     user.save()
-        .select(fieldsExcluded)
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
             generalHelper.saveErrorLog(err);
