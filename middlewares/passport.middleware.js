@@ -5,7 +5,7 @@ const jwtStrategy = require('passport-jwt').Strategy;
 const extractJwt = require('passport-jwt').ExtractJwt;
 const config = require('./../config/config');
 const generalHelper = require('./../helpers/general.helper');
-const User = require('./../models/user.model');
+const {userModel: User} = require('./../models/user.model');
 
 module.exports = (passport) => {
     passport.use(new HeaderAPIKeyStrategy({

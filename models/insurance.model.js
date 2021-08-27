@@ -1,4 +1,6 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
+
+exports.collectionName = 'insurance';
 
 const configObj = {
     logo: {
@@ -108,7 +110,7 @@ const configObj = {
     }
 };
 
-const InsuranceSchema = mongoose.Schema({
+const insuranceSchema = Schema({
     name: {
         type: String,
         trim: true,
@@ -162,7 +164,8 @@ const InsuranceSchema = mongoose.Schema({
     },
     config: configObj
 }, {
+    collection: this.collectionName,
     timestamps: true
 });
 
-module.exports = mongoose.model('Insurance', InsuranceSchema);
+exports.insuranceModel = model(this.collectionName, insuranceSchema);

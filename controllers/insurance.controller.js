@@ -1,15 +1,10 @@
-const appRootPath = require('app-root-path');
 const {
     body,
     param,
     validationResult
 } = require('express-validator');
-const moment = require('moment');
-const config = require('./../config/config');
-const constants = require('./../config/constants');
 const generalHelper = require('./../helpers/general.helper');
-const Insurance = require('./../models/insurance.model');
-
+const {insuranceModel: Insurance} = require('./../models/insurance.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {

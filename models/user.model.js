@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
 const constants = require('./../config/constants');
 
 let arrUserType = [];
@@ -15,7 +15,7 @@ Object.keys(constants.userAuth).forEach((e, i) => {
 
 exports.collectionName = 'user';
 
-const UserSchema = mongoose.Schema({
+const userSchema = Schema({
     email: {
         type: String,
         unique: true,
@@ -77,4 +77,4 @@ const UserSchema = mongoose.Schema({
     timestamps: true
 });
 
-exports.userModel = mongoose.model(this.collectionName, UserSchema);
+exports.userModel = model(this.collectionName, userSchema);
