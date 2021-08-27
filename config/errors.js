@@ -10,5 +10,11 @@ module.exports = {
     },
     tokenExpired: {
         message: 'Token has expired'
+    },
+    mobileNumberExist: {
+        message: 'Mobile number already exist'
+    },
+    emailExist: {
+        message: 'Email already exist'
     }
-}
+};

@@ -527,9 +527,18 @@ exports.create = (req, res) => {
         })
         .catch(err => {
             generalHelper.saveErrorLog(err);
-            generalHelper.response.error(res, {
-                message: err.message
-            });
+
+            if(err.code === 11000) {
+                let errMessage;
+                const key = Object.keys(err.keyValue)[0];
+
+                if(key === 'mobileNo') errMessage = fiErrors.mobileNumberExist
+                if(key === 'email') errMessage = fiErrors.emailExist;
+
+                generalHelper.response.error(res, errMessage);
+            } else {
+                generalHelper.response.error(res, errMessage);
+            }
         });
 };
 
