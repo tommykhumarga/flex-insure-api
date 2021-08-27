@@ -23,7 +23,7 @@ exports.validate = (method) => {
                 param('carId')
                     .notEmpty()
                     .withMessage('Car ID is required'),
-                    body('insuranceId')
+                body('insuranceId')
                     .notEmpty()
                     .withMessage('Insurance ID is required'),
                 body('cars')
@@ -37,7 +37,7 @@ exports.validate = (method) => {
                     .withMessage('Car ID is required')
             ]
     }
-}
+};
 
 exports.create = (req, res) => {
     try {
@@ -58,9 +58,7 @@ exports.create = (req, res) => {
                     message: 'Failed to save car data'
                 });
 
-                generalHelper.response.success(res, {
-                    message: 'Car data saved successfully'
-                });
+                generalHelper.response.success(res, data);
             })
             .catch(err => {
                 console.log(err);

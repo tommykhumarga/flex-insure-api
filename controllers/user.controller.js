@@ -518,7 +518,13 @@ exports.create = (req, res) => {
     });
 
     user.save()
-        .then(data => generalHelper.response.success(res, data))
+        .then(data => {
+            if(!data) return generalHelper.response.error(res, {
+                message: 'Failed to save user data'
+            });
+
+            generalHelper.response.success(res, data);
+        })
         .catch(err => {
             generalHelper.saveErrorLog(err);
             generalHelper.response.error(res, {

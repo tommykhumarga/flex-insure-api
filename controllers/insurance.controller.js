@@ -23,7 +23,7 @@ exports.validate = (method) => {
                     .notEmpty()
                     .withMessage('Phone number is required')
                     .isMobilePhone()
-                    .withMessage('Invalid mobile number format'),
+                    .withMessage('Invalid phone number format'),
                 body('pic', 'Person in Charge is required').notEmpty(),
                 body('taxId')
                     .notEmpty()
@@ -161,9 +161,7 @@ exports.create = (req, res) => {
                     message: 'Failed to save insurance data'
                 });
 
-                generalHelper.response.success(res, {
-                    message: 'Insurance data saved successfully'
-                });
+                generalHelper.response.success(res, data);
             })
             .catch(err => {
                 generalHelper.saveErrorLog(err);
