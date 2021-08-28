@@ -11,7 +11,7 @@ exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
-                body['userId']
+                body('userId')
                     .notEmpty()
                     .withMessage('User ID is required'),
                 body('name', 'Name is required').notEmpty(),
@@ -148,7 +148,7 @@ exports.create = (req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
@@ -207,7 +207,7 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
@@ -229,7 +229,7 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
@@ -252,7 +252,7 @@ exports.update = (req, res) => {
         .select(fieldsExcluded)
         .then(data => {
             if (!data) return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             generalHelper.response.success(res, data)
@@ -260,7 +260,7 @@ exports.update = (req, res) => {
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             return generalHelper.response.error(res, {

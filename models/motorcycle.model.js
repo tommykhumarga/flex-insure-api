@@ -1,5 +1,4 @@
 const {Schema, model} = require('mongoose');
-const constants = require('../config/constants');
 const {collectionName: InsuranceCollectionName} = require('./insurance.model');
 
 exports.collectionName = 'motorcycle';

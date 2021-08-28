@@ -2,10 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
-const config = require('./config/config');
 const generalHelper = require('./helpers/general.helper');
 const routes = require('./routes');
-global.fiErrors = require('./config/errors');
+global.appConfig = require('./config/config');
+global.appError = require('./config/errors');
+global.appEnum = require('./config/enum');
 
 const main = async () => {
     const app = express();
@@ -20,18 +21,18 @@ const main = async () => {
         extended: true
     }));
 
-    app.get('/', (req, res) => res.status(200).send(`${config.app.name} v${config.app.version}`));
+    app.get('/', (req, res) => res.status(200).send(`${appConfig.app.name} v${appConfig.app.version}`));
     app.use('/v1', routes);
 
-    app.listen(config.app.port, () => {
-        console.log(`Server running on port ${config.app.port}`);
+    app.listen(appConfig.app.port, () => {
+        console.log(`Server running on port ${appConfig.app.port}`);
     });
 };
 
 const connectDb = () => {
     mongoose.Promise = global.Promise;
 
-    mongoose.connect(config.db.url, {
+    mongoose.connect(appConfig.db.url, {
             useNewUrlParser: true,
             useFindAndModify: false,
             useCreateIndex: true,

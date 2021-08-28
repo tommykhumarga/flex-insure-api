@@ -1,17 +1,5 @@
 const {Schema, model} = require('mongoose');
-const constants = require('./../config/constants');
-
-let arrUserType = [];
-
-Object.keys(constants.userTypes).forEach((e, i) => {
-    arrUserType.push(constants.userTypes[e].value);
-});
-
-let arrUserAuth = [];
-
-Object.keys(constants.userAuth).forEach((e, i) => {
-    arrUserAuth.push(constants.userAuth[e].value);
-});
+const appEnum = require('./../config/enum');
 
 exports.collectionName = 'user';
 
@@ -44,13 +32,11 @@ const userSchema = Schema({
     },
     type: {
         type: String,
-        enum: arrUserType,
-        required: true
+        default: appEnum.userType.none.key
     },
     authenticationMethod: {
         type: String,
-        enum: arrUserAuth,
-        required: true
+        default: appEnum.userAuth.low.key
     },
     blocked: {
         type: Boolean,
