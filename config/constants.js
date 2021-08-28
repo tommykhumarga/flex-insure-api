@@ -19,6 +19,10 @@ module.exports = {
         intermediaries: {
             value: 'intermediaries',
             label: 'Intermediaries'
+        },
+        endUser: {
+            value: 'enduser',
+            label: 'End User'
         }
     },
     userAuth: {
