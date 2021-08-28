@@ -7,6 +7,7 @@ const routes = require('./routes');
 global.appConfig = require('./config/config');
 global.appError = require('./config/errors');
 global.appEnum = require('./config/enum');
+global.dbCollections = require('./models/collections');
 
 const main = async () => {
     const app = express();

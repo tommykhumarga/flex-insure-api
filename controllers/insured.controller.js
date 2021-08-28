@@ -3,17 +3,18 @@ const {
     param,
     validationResult
 } = require('express-validator');
+const mongoose = require('mongoose');
 const generalHelper = require('../helpers/general.helper');
-const {insuredModel: Insured} = require('../models/insured.model');
+const Insured = require('../models/insured.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
-                body('userId')
+                body('user')
                     .notEmpty()
-                    .withMessage('User ID is required'),
+                    .withMessage('User is required'),
                 body('name', 'Name is required').notEmpty(),
                 body('address', 'Address is required').notEmpty(),
                 body('email')
@@ -46,9 +47,9 @@ exports.validate = (method) => {
                         max: 15
                     })
                     .withMessage('Tax ID should be 15 characters long'),
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('contactPerson')
                     .notEmpty()
                     .withMessage('Contact person is required'),
@@ -96,9 +97,9 @@ exports.validate = (method) => {
                         max: 15
                     })
                     .withMessage('Tax ID should be 15 characters long'),
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('contactPerson')
                     .notEmpty()
                     .withMessage('Contact person is required'),
@@ -111,7 +112,7 @@ exports.validate = (method) => {
                     .isBoolean()
                     .withMessage('Invalid boolean format')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('insuredId', 'Insured ID is required').notEmpty(),
             ]
@@ -127,6 +128,8 @@ exports.create = (req, res) => {
         });
 
         const insured = new Insured({
+            _id: new mongoose.Types.ObjectId(),
+            user: req.body.user,
             name: req.body.name,
             address: req.body.address,
             mobileNo: req.body.mobileNo,
@@ -134,10 +137,8 @@ exports.create = (req, res) => {
             drivingId: req.body.drivingId,
             socialId: req.body.socialId,
             taxId: req.body.taxId,
-            insuranceId: req.body.insuranceId,
             contactPerson: req.body.contactPerson,
             isCorporate: req.body.isCorporate,
-            insurances: req.body.insurances,
             active: req.body.active,
             config: req.body.config
         });
@@ -186,20 +187,20 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
         message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Insured.findById(req.params.insuranceId)
+    Insured.findOne({_id: req.params.insuredId})
         .select(fieldsExcluded)
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: `Insured ID ${req.params.insuranceId} not found`
+                message: `Insured ID ${req.params.insuredId} not found`
             });
 
             return generalHelper.response.error(res, {
@@ -215,7 +216,7 @@ exports.update = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Insurance.findByIdAndUpdate(req.params.insuredId, {
+    Insured.findOneAndUpdate({_id: req.params.insuredId}, {
             name: req.body.name,
             address: req.body.address,
             mobileNo: req.body.mobileNo,
@@ -223,10 +224,8 @@ exports.update = (req, res) => {
             drivingId: req.body.drivingId,
             socialId: req.body.socialId,
             taxId: req.body.taxId,
-            insuranceId: req.body.insuranceId,
             contactPerson: req.body.contactPerson,
             isCorporate: req.body.isCorporate,
-            insurances: req.body.insurances,
             active: req.body.active,
             config: req.body.config
         }, {

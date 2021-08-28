@@ -1,6 +1,5 @@
 const {Schema, model} = require('mongoose');
-
-exports.collectionName = 'insurance';
+const dbCollections = require('./collections');
 
 const configObj = {
     logo: {
@@ -111,6 +110,7 @@ const configObj = {
 };
 
 const insuranceSchema = Schema({
+    _id: Schema.Types.ObjectId,
     name: {
         type: String,
         trim: true,
@@ -164,8 +164,7 @@ const insuranceSchema = Schema({
     },
     config: configObj
 }, {
-    collection: this.collectionName,
-    timestamps: true
+    collection: dbCollections.insurance.name
 });
 
-exports.insuranceModel = model(this.collectionName, insuranceSchema);
+module.exports = model(dbCollections.insurance.name, insuranceSchema);

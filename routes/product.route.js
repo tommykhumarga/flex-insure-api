@@ -9,6 +9,6 @@ const productController = require('../controllers/product.controller');
 router.post('/', passport.authenticate('jwt', passportSession), productController.validate('create'), productController.create);
 router.put('/:productId', passport.authenticate('jwt', passportSession), productController.validate('update'), productController.update);
 router.get('/', passport.authenticate('jwt', passportSession), productController.findAll);
-router.get('/:productId', passport.authenticate('jwt', passportSession), productController.validate('findOne'), productController.findOne);
+router.get('/:productId', passport.authenticate('jwt', passportSession), productController.validate('findById'), productController.findById);
 
 module.exports = router;

@@ -7,8 +7,8 @@ const passportSession = {
 const userController = require('./../controllers/user.controller');
 
 router.get('/', passport.authenticate('jwt', passportSession), userController.findAll);
-router.get('/:userId', passport.authenticate('jwt', passportSession), userController.validate('findOne'), userController.findOne);
-router.post('/', passport.authenticate('jwt', passportSession), userController.create);
+router.get('/:userId', passport.authenticate('jwt', passportSession), userController.validate('findById'), userController.findById);
+router.post('/', passport.authenticate('headerapikey', passportSession), userController.create);
 router.put('/:userId', passport.authenticate('jwt', passportSession), userController.validate('update'), userController.update);
 router.post('/login', passport.authenticate('headerapikey', passportSession), userController.validate('login'), userController.login);
 router.post('/register', passport.authenticate('headerapikey', passportSession), userController.validate('register'), userController.register);

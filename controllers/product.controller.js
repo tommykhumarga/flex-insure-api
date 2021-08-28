@@ -3,17 +3,18 @@ const {
     param,
     validationResult
 } = require('express-validator');
+const mongoose = require('mongoose');
 const generalHelper = require('../helpers/general.helper');
-const {productModel: Product} = require('../models/product.model');
+const Product = require('../models/product.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('seq')
                     .notEmpty()
                     .withMessage('Sequence is required'),
@@ -32,9 +33,9 @@ exports.validate = (method) => {
                 param('productId')
                     .notEmpty()
                     .withMessage('Product ID is required'),
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('seq')
                     .notEmpty()
                     .withMessage('Sequence is required'),
@@ -48,7 +49,7 @@ exports.validate = (method) => {
                     .notEmpty()
                     .withMessage('Config is required')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('productId')
                     .notEmpty()
@@ -66,7 +67,8 @@ exports.create = (req, res) => {
         });
 
         const product = new Product({
-            insuranceId: req.body.insuranceId,
+            _id: new mongoose.Types.ObjectId(),
+            insurance: req.body.insurance,
             seq: req.body.seq,
             productType: req.body.productType,
             name: req.body.name,
@@ -109,20 +111,21 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
         message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Product.findById(req.params.insuranceId)
+    Product.findOne({_id: req.params.productId})
         .select(fieldsExcluded)
+        .populate('insurance')
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: `Product ID ${req.params.insuranceId} not found`
+                message: `Product ID ${req.params.productId} not found`
             });
 
             return generalHelper.response.error(res, {
@@ -138,8 +141,12 @@ exports.update = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Insurance.findByIdAndUpdate(req.params.productId, {
-            products: req.body.products
+    Product.findOneAndUpdate({_id: req.params.productId}, {
+            insurance: req.body.insurance,
+            seq: req.body.seq,
+            productType: req.body.productType,
+            name: req.body.name,
+            config: req.body.config
         }, {
             new: true
         })

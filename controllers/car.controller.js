@@ -3,17 +3,18 @@ const {
     param,
     validationResult
 } = require('express-validator');
+const mongoose = require('mongoose');
 const generalHelper = require('./../helpers/general.helper');
-const {carModel: Car} = require('./../models/car.model');
+const Car = require('./../models/car.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('cars')
                     .notEmpty()
                     .withMessage('Cars is required')
@@ -23,14 +24,14 @@ exports.validate = (method) => {
                 param('carId')
                     .notEmpty()
                     .withMessage('Car ID is required'),
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('cars')
                     .notEmpty()
                     .withMessage('Cars is required')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('carId')
                     .notEmpty()
@@ -48,7 +49,8 @@ exports.create = (req, res) => {
         });
 
         const car = new Car({
-            insuranceId: req.body.insuranceId,
+            _id: new mongoose.Types.ObjectId(),
+            insurance: req.body.insurance,
             cars: req.body.cars
         });
 
@@ -88,20 +90,23 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
         message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Car.findById(req.params.insuranceId)
+    Car.findOne({_id: req.params.carId})
         .select(fieldsExcluded)
-        .then(data => generalHelper.response.success(res, data))
+        .populate('insurance', ['name'])
+        .then(data => {
+            generalHelper.response.success(res, data)
+        })
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: `Car ID ${req.params.insuranceId} not found`
+                message: `Car ID ${req.params.carId} not found`
             });
 
             return generalHelper.response.error(res, {
@@ -117,7 +122,7 @@ exports.update = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Insurance.findByIdAndUpdate(req.params.carId, {
+    Car.findOneAndUpdate({_id: req.params.carId}, {
             cars: req.body.cars
         }, {
             new: true

@@ -1,9 +1,9 @@
 const {Schema, model} = require('mongoose');
 const appEnum = require('./../config/enum');
-
-exports.collectionName = 'user';
+const dbCollections = require('./collections');
 
 const userSchema = Schema({
+    _id: Schema.Types.ObjectId,
     email: {
         type: String,
         unique: true,
@@ -59,8 +59,7 @@ const userSchema = Schema({
         default: false
     }
 }, {
-    collection: this.collectionName,
-    timestamps: true
+    collection: dbCollections.user.name
 });
 
-exports.userModel = model(this.collectionName, userSchema);
+module.exports = model(dbCollections.user.name, userSchema);

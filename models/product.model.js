@@ -1,7 +1,5 @@
 const {Schema, model} = require('mongoose');
-const {collectionName: InsuranceCollectionName} = require('./insurance.model');
-
-exports.collectionName = 'product';
+const dbCollections = require('./collections');
 
 const approverObj = {
     tsi: {
@@ -226,9 +224,10 @@ const configObj = {
 };
 
 const productSchema = Schema({
-    insuranceId: {
+    _id: Schema.Types.ObjectId,
+    insurance: {
         type: Schema.Types.ObjectId,
-        ref: InsuranceCollectionName
+        ref: dbCollections.insurance.name
     },
     seq: {
         type: Number,
@@ -244,8 +243,7 @@ const productSchema = Schema({
     },
     config: configObj
 }, {
-    collection: this.collectionName,
-    timestamps: true
+    collection: dbCollections.product.name
 });
 
-exports.productModel = model(this.collectionName, productSchema);
+module.exports = model(dbCollections.product.name, productSchema);

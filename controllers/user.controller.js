@@ -9,9 +9,10 @@ const {
     v4: uuidv4
 } = require('uuid');
 const moment = require('moment');
+const mongoose = require('mongoose');
 const generalHelper = require('./../helpers/general.helper');
 const encryptionHelper = require('./../helpers/encryption.helper');
-const {userModel: User} = require('./../models/user.model');
+const User = require('./../models/user.model');
 
 const fieldsExcluded = '-__v -password -activationToken';
 
@@ -59,7 +60,7 @@ exports.validate = (method) => {
                     })
                     .withMessage('Password must be 6 - 30 characters')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('userId')
                     .notEmpty()
@@ -184,6 +185,7 @@ exports.register = async(req, res) => {
         const activationTokenExpiry = moment().add(1, 'hours');
 
         const user = new User({
+            _id: new mongoose.Types.ObjectId(),
             email: req.body.email,
             password: hashedPassword,
             name: req.body.name,
@@ -248,7 +250,7 @@ exports.activation = async(req, res) => {
             message: appError.tokenExpired.message
         });
 
-        const activate = await User.findByIdAndUpdate(userData._id, {
+        const activate = await User.findOneAndUpdate({_id: userData._id}, {
             active: true,
             activationToken: null,
             activationTokenExpiry: null
@@ -276,9 +278,7 @@ exports.login = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    User.findOne({
-            email: req.body.email
-        })
+    User.findOne({email: req.body.email})
         .then(data => {
             if (!data) return generalHelper.response.error(res, {
                 message: 'Email not found'
@@ -304,7 +304,7 @@ exports.login = (req, res) => {
                     });
 
                     generalHelper.response.success(res, {
-                        id: data._id,
+                        _id: data._id,
                         token
                     });
                 })
@@ -338,7 +338,7 @@ exports.changePassword = async(req, res) => {
         });
 
         const hashedNewPassword = encryptionHelper.encrypt(req.body.newPassword);
-        const updatePassword = await User.findByIdAndUpdate(req.params.userId, {
+        const updatePassword = await User.findOneAndUpdate({_id: req.params.userId}, {
             password: hashedNewPassword,
             forgotPasswordToken: null,
             forgotPasswordTokenExpiry: null
@@ -468,7 +468,7 @@ exports.resetPassword = async(req, res) => {
         });
 
         const hashedNewPassword = encryptionHelper.encrypt(req.body.newPassword);
-        const updatePassword = await User.findByIdAndUpdate(req.params.userId, {
+        const updatePassword = await User.findOneAndUpdate({_id: req.params.userId}, {
             password: hashedNewPassword,
             forgotPasswordToken: null,
             forgotPasswordTokenExpiry: null
@@ -505,6 +505,7 @@ exports.create = (req, res) => {
     }
 
     const user = new User({
+        _id: new mongoose.Types.ObjectId(),
         email: req.body.email,
         password: hashedPassword,
         role: req.body.role,
@@ -524,17 +525,21 @@ exports.create = (req, res) => {
         })
         .catch(err => {
             generalHelper.saveErrorLog(err);
+            let errMessage = err.message;
 
             if(err.code === 11000) {
-                let errMessage;
                 const key = Object.keys(err.keyValue)[0];
 
                 if(key === 'mobileNo') errMessage = appError.mobileNumberExist
                 if(key === 'email') errMessage = appError.emailExist;
 
-                generalHelper.response.error(res, errMessage);
+                generalHelper.response.error(res, {
+                    message: errMessage
+                });
             } else {
-                generalHelper.response.error(res, errMessage);
+                generalHelper.response.error(res, {
+                    message: errMessage
+                });
             }
         });
 };
@@ -551,14 +556,14 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
         message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    User.findById(req.params.userId)
+    User.findOne({_id: req.params.userId})
         .select(fieldsExcluded)
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
@@ -580,7 +585,7 @@ exports.update = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    User.findByIdAndUpdate(req.params.userId, {
+    User.findOneAndUpdate({_id: req.params.userId}, {
             role: req.body.role,
             name: req.body.name,
             mobileNo: req.body.mobileNo,

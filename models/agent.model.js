@@ -1,8 +1,5 @@
 const {Schema, model} = require('mongoose');
-const {collectionName: InsuranceCollectionName} = require('./insurance.model');
-const {collectionName: UserCollectionName} = require('./user.model');
-
-exports.collectionName = 'agent';
+const dbCollections = require('./collections');
 
 const imageObj = {
     socialId: {
@@ -60,17 +57,11 @@ const configObj = {
     images: imageObj
 };
 
-const insuranceObj = {
-    insuranceId: {
-        type: Schema.Types.ObjectId,
-        ref: InsuranceCollectionName
-    }
-};
-
 const agentSchema = Schema({
-    userId: {
+    _id: Schema.Types.ObjectId,
+    user: {
         type: Schema.Types.ObjectId,
-        ref: UserCollectionName
+        ref: dbCollections.user.name
     },
     name: {
         type: String,
@@ -96,10 +87,6 @@ const agentSchema = Schema({
         type: String,
         trim: true
     },
-    insuranceId: {
-        type: Schema.Types.ObjectId,
-        ref: InsuranceCollectionName
-    },
     contactPerson: {
         type: String,
         trim: true
@@ -108,15 +95,13 @@ const agentSchema = Schema({
         type: Boolean,
         default: false
     },
-    insurances: insuranceObj,
     active: {
         type: Boolean,
         default: false
     },
     config: configObj
 }, {
-    collection: this.collectionName,
-    timestamps: true
+    collection: dbCollections.agent.name
 });
 
-exports.agentModel = model(this.collectionName, agentSchema);
+module.exports = model(dbCollections.agent.name, agentSchema);

@@ -9,6 +9,6 @@ const agentController = require('./../controllers/agent.controller');
 router.post('/', passport.authenticate('jwt', passportSession), agentController.validate('create'), agentController.create);
 router.put('/:agentId', passport.authenticate('jwt', passportSession), agentController.validate('update'), agentController.update);
 router.get('/', passport.authenticate('jwt', passportSession), agentController.findAll);
-router.get('/:agentId', passport.authenticate('jwt', passportSession), agentController.validate('findOne'), agentController.findOne);
+router.get('/:agentId', passport.authenticate('jwt', passportSession), agentController.validate('findById'), agentController.findById);
 
 module.exports = router;
