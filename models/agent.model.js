@@ -1,5 +1,6 @@
 const {Schema, model} = require('mongoose');
 const {collectionName: InsuranceCollectionName} = require('./insurance.model');
+const {collectionName: UserCollectionName} = require('./user.model');
 
 exports.collectionName = 'agent';
 
@@ -67,6 +68,10 @@ const insuranceObj = {
 };
 
 const agentSchema = Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: UserCollectionName
+    },
     name: {
         type: String,
         trim: true

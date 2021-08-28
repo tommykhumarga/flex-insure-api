@@ -11,6 +11,9 @@ exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
+                body('userId')
+                    .notEmpty()
+                    .withMessage('User ID is required'),
                 body('name', 'Name is required').notEmpty(),
                 body('address', 'Address is required').notEmpty(),
                 body('email')

@@ -11,6 +11,9 @@ exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
+                body['userId']
+                    .notEmpty()
+                    .withMessage('User ID is required'),
                 body('name', 'Name is required').notEmpty(),
                 body('address', 'Address is required').notEmpty(),
                 body('email')
@@ -150,6 +153,7 @@ exports.create = (req, res) => {
         });
 
         const agent = new Agent({
+            userId: req.body.userId,
             name: req.body.name,
             address: req.body.address,
             mobileNo: req.body.mobileNo,
