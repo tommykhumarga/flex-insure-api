@@ -1,17 +1,13 @@
 const router = require('express').Router();
-const userRoute = require('./user.route');
-const insuranceRoute = require('./insurance.route');
-const carRoute = require('./car.route');
-const motorcycleRoute = require('./motorcycle.route');
-const agentRoute = require('./agent.route');
-const insuredRoute = require('./insured.route');
 
 router.get('/', (req, res) => res.status(200).send(`${appConfig.app.name} v${appConfig.app.version}`));
-router.use('/user', userRoute);
-router.use('/insurance', insuranceRoute);
-router.use('/car', carRoute);
-router.use('/motorcycle', motorcycleRoute);
-router.use('/agent', agentRoute);
-router.use('/insured', insuredRoute);
+router.use('/common', require('./common.route'));
+router.use('/user', require('./user.route'));
+router.use('/insurance', require('./insurance.route'));
+router.use('/car', require('./car.route'));
+router.use('/motorcycle', require('./motorcycle.route'));
+router.use('/agent', require('./agent.route'));
+router.use('/insured', require('./insured.route'));
+router.use('/product', require('./product.route'));
 
 module.exports = router;

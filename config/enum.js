@@ -18,3 +18,8 @@ exports.userType = new Enum({
 exports.userAuth = new Enum({
     low: 'Login'
 });
+
+exports.productType = new Enum({
+    carInsurance: 'Car Insurance',
+    motorcycleInsurance: 'Motorcycle Insurance'
+});
