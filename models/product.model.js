@@ -233,7 +233,7 @@ const productSchema = Schema({
         type: Number,
         default: 0
     },
-    productType: {
+    type: {
         type: String,
         trim: true
     },

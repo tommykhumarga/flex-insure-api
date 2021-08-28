@@ -9,5 +9,6 @@ router.use('/motorcycle', require('./motorcycle.route'));
 router.use('/agent', require('./agent.route'));
 router.use('/insured', require('./insured.route'));
 router.use('/product', require('./product.route'));
+router.use('/sales', require('./sales.route'));
 
 module.exports = router;

@@ -18,7 +18,7 @@ exports.validate = (method) => {
                 body('seq')
                     .notEmpty()
                     .withMessage('Sequence is required'),
-                body('productType')
+                body('type')
                     .notEmpty()
                     .withMessage('Product type is required'),
                 body('name')
@@ -39,7 +39,7 @@ exports.validate = (method) => {
                 body('seq')
                     .notEmpty()
                     .withMessage('Sequence is required'),
-                body('productType')
+                body('type')
                     .notEmpty()
                     .withMessage('Product type is required'),
                 body('name')
