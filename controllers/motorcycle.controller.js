@@ -3,17 +3,18 @@ const {
     param,
     validationResult
 } = require('express-validator');
+const mongoose = require('mongoose');
 const generalHelper = require('../helpers/general.helper');
-const {motorcycleModel: Motorcycle} = require('../models/motorcycle.model');
+const Motorcycle = require('../models/motorcycle.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('motorcycles')
                     .notEmpty()
                     .withMessage('Motorcycles is required')
@@ -23,14 +24,14 @@ exports.validate = (method) => {
                 param('motorcycleId')
                     .notEmpty()
                     .withMessage('Motorcycle ID is required'),
-                body('insuranceId')
+                body('insurance')
                     .notEmpty()
-                    .withMessage('Insurance ID is required'),
+                    .withMessage('Insurance is required'),
                 body('motorcycles')
                     .notEmpty()
                     .withMessage('Motorcycles is required')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('motorcycleId')
                     .notEmpty()
@@ -43,12 +44,13 @@ exports.create = (req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
         const motorcycle = new Motorcycle({
-            insuranceId: req.body.insuranceId,
+            _id: new mongoose.Types.ObjectId(),
+            insurance: req.body.insurance,
             motorcycles: req.body.motorcycles
         });
 
@@ -88,20 +90,21 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Motorcycle.findById(req.params.insuranceId)
+    Motorcycle.findOneAndUpdate({_id: req.params.motorcycleId})
         .select(fieldsExcluded)
+        .populate('insurance', ['name'])
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: `Motorcycle ID ${req.params.insuranceId} not found`
+                message: `Motorcycle ID ${req.params.motorcycleId} not found`
             });
 
             return generalHelper.response.error(res, {
@@ -113,11 +116,11 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Insurance.findByIdAndUpdate(req.params.motorcycleId, {
+    Motorcycle.findOneAndUpdate({_id: req.params.motorcycleId}, {
             motorcycles: req.body.motorcycles
         }, {
             new: true
@@ -125,7 +128,7 @@ exports.update = (req, res) => {
         .select(fieldsExcluded)
         .then(data => {
             if (!data) return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             generalHelper.response.success(res, data)
@@ -133,7 +136,7 @@ exports.update = (req, res) => {
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             return generalHelper.response.error(res, {

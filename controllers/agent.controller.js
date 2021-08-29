@@ -3,14 +3,18 @@ const {
     param,
     validationResult
 } = require('express-validator');
+const mongoose = require('mongoose');
 const generalHelper = require('./../helpers/general.helper');
-const {agentModel: Agent} = require('./../models/agent.model');
+const Agent = require('./../models/agent.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
     switch(method) {
         case 'create':
             return [
+                body('user')
+                    .notEmpty()
+                    .withMessage('User ID is required'),
                 body('name', 'Name is required').notEmpty(),
                 body('address', 'Address is required').notEmpty(),
                 body('email')
@@ -40,9 +44,6 @@ exports.validate = (method) => {
                         max: 15
                     })
                     .withMessage('Tax ID should be 15 characters long'),
-                body('insuranceId')
-                    .notEmpty()
-                    .withMessage('Insurance ID is required'),
                 body('contactPerson')
                     .notEmpty()
                     .withMessage('Contact person is required'),
@@ -103,9 +104,6 @@ exports.validate = (method) => {
                         max: 15
                     })
                     .withMessage('Tax ID should be 15 characters long'),
-                body('insuranceId')
-                    .notEmpty()
-                    .withMessage('Insurance ID is required'),
                 body('contactPerson')
                     .notEmpty()
                     .withMessage('Contact person is required'),
@@ -134,7 +132,7 @@ exports.validate = (method) => {
                     .isNumeric()
                     .withMessage('Additional commission only use number')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('agentId', 'Agent ID is required').notEmpty(),
             ]
@@ -145,21 +143,21 @@ exports.create = (req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
         const agent = new Agent({
+            _id: new mongoose.Types.ObjectId(),
+            user: req.body.user,
             name: req.body.name,
             address: req.body.address,
             mobileNo: req.body.mobileNo,
             email: req.body.email,
             socialId: req.body.socialId,
             taxId: req.body.taxId,
-            insuranceId: req.body.insuranceId,
             contactPerson: req.body.contactPerson,
             isCorporate: req.body.isCorporate,
-            insurances: req.body.insurances,
             active: req.body.active,
             config: req.body.config
         });
@@ -200,20 +198,21 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Agent.findById(req.params.insuranceId)
+    Agent.findOne({_id: req.params.agentId})
         .select(fieldsExcluded)
+        .populate('user', ['name', 'email'])
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: `Agent ID ${req.params.insuranceId} not found`
+                message: `Agent ID ${req.params.agentId} not found`
             });
 
             return generalHelper.response.error(res, {
@@ -225,18 +224,18 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Insurance.findByIdAndUpdate(req.params.agentId, {
+    Insurance.findOneAndUpdate({_id: req.params.agentId}, {
             name: req.body.name,
             address: req.body.address,
             mobileNo: req.body.mobileNo,
             email: req.body.email,
             socialId: req.body.socialId,
             taxId: req.body.taxId,
-            insuranceId: req.body.insuranceId,
+            insurance: req.body.insurance,
             contactPerson: req.body.contactPerson,
             isCorporate: req.body.isCorporate,
             insurances: req.body.insurances,
@@ -248,7 +247,7 @@ exports.update = (req, res) => {
         .select(fieldsExcluded)
         .then(data => {
             if (!data) return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             generalHelper.response.success(res, data)
@@ -256,7 +255,7 @@ exports.update = (req, res) => {
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             return generalHelper.response.error(res, {

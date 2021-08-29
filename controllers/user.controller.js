@@ -9,11 +9,10 @@ const {
     v4: uuidv4
 } = require('uuid');
 const moment = require('moment');
-const config = require('./../config/config');
-const constants = require('./../config/constants');
+const mongoose = require('mongoose');
 const generalHelper = require('./../helpers/general.helper');
 const encryptionHelper = require('./../helpers/encryption.helper');
-const {userModel: User} = require('./../models/user.model');
+const User = require('./../models/user.model');
 
 const fieldsExcluded = '-__v -password -activationToken';
 
@@ -61,7 +60,7 @@ exports.validate = (method) => {
                     })
                     .withMessage('Password must be 6 - 30 characters')
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('userId')
                     .notEmpty()
@@ -177,7 +176,7 @@ exports.register = async(req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
@@ -186,12 +185,12 @@ exports.register = async(req, res) => {
         const activationTokenExpiry = moment().add(1, 'hours');
 
         const user = new User({
+            _id: new mongoose.Types.ObjectId(),
             email: req.body.email,
             password: hashedPassword,
             name: req.body.name,
             mobileNo: req.body.mobileNo,
-            authenticationMethod: constants.userAuth.low.value,
-            type: constants.userTypes.none.value,
+            authenticationMethod: appEnum.userAuth.low.key,
             role: 'user',
             activationToken,
             activationTokenExpiry
@@ -203,7 +202,7 @@ exports.register = async(req, res) => {
         });
 
         const hashedActivationToken = encryptionHelper.cryptoEncrypt(activationToken);
-        const activationLink = `${config.webapp.baseUrl}${config.webapp.activationPath}?token=${hashedActivationToken}`;
+        const activationLink = `${appConfig.webapp.baseUrl}${appConfig.webapp.activationPath}?token=${hashedActivationToken}`;
         let emailBody = await generalHelper.readFileContent(`${appRootPath}/templates/registration.txt`);
         emailBody = emailBody.replace('##LINK##', activationLink);
 
@@ -234,7 +233,7 @@ exports.activation = async(req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
@@ -244,14 +243,14 @@ exports.activation = async(req, res) => {
         });
 
         if (!userData) return generalHelper.response.error(res, {
-            message: fiErrors.invalidToken.message
+            message: appError.invalidToken.message
         });
 
         if (moment(userData.activationTokenExpiry).isBefore(moment())) return generalHelper.response.error(res, {
-            message: fiErrors.tokenExpired.message
+            message: appError.tokenExpired.message
         });
 
-        const activate = await User.findByIdAndUpdate(userData._id, {
+        const activate = await User.findOneAndUpdate({_id: userData._id}, {
             active: true,
             activationToken: null,
             activationTokenExpiry: null
@@ -275,13 +274,11 @@ exports.activation = async(req, res) => {
 exports.login = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    User.findOne({
-            email: req.body.email
-        })
+    User.findOne({email: req.body.email})
         .then(data => {
             if (!data) return generalHelper.response.error(res, {
                 message: 'Email not found'
@@ -299,7 +296,7 @@ exports.login = (req, res) => {
                     type: data.type,
                     authenticationMethod: data.authenticationMethod
                 },
-                config.encryption.jwtKey, {
+                appConfig.encryption.jwtKey, {
                     expiresIn: '1d'
                 }, (err, token) => {
                     if (err) return generalHelper.response.error(res, {
@@ -307,7 +304,7 @@ exports.login = (req, res) => {
                     });
 
                     generalHelper.response.success(res, {
-                        id: data._id,
+                        _id: data._id,
                         token
                     });
                 })
@@ -323,7 +320,7 @@ exports.login = (req, res) => {
 exports.changePassword = async(req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
@@ -333,7 +330,7 @@ exports.changePassword = async(req, res) => {
         });
 
         if (!userData) return generalHelper.response.error(res, {
-            message: fiErrors.dataNotFound.message
+            message: appError.dataNotFound.message
         });
 
         if (!encryptionHelper.compare(req.body.currentPassword, userData.password)) return generalHelper.response.error(res, {
@@ -341,7 +338,7 @@ exports.changePassword = async(req, res) => {
         });
 
         const hashedNewPassword = encryptionHelper.encrypt(req.body.newPassword);
-        const updatePassword = await User.findByIdAndUpdate(req.params.userId, {
+        const updatePassword = await User.findOneAndUpdate({_id: req.params.userId}, {
             password: hashedNewPassword,
             forgotPasswordToken: null,
             forgotPasswordTokenExpiry: null
@@ -365,14 +362,14 @@ exports.changePassword = async(req, res) => {
 exports.forgotPassword = async(req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
     try {
         const userData = await User.findOne({email: req.body.email});
         if(!userData) return generalHelper.response.badRequest(res, {
-            message: fiErrors.dataNotFound.message
+            message: appError.dataNotFound.message
         });
 
         const forgotPasswordToken = uuidv4();
@@ -386,7 +383,7 @@ exports.forgotPassword = async(req, res) => {
         });
 
         const hashedForgotPasswordToken = encryptionHelper.cryptoEncrypt(forgotPasswordToken);
-        const resetLink = `${config.webapp.baseUrl}${config.webapp.forgotPasswordPath}?validate&token=${hashedForgotPasswordToken}`;
+        const resetLink = `${appConfig.webapp.baseUrl}${appConfig.webapp.forgotPasswordPath}?validate&token=${hashedForgotPasswordToken}`;
         let emailBody = await generalHelper.readFileContent(`${appRootPath}/templates/forgot_password.txt`);
         emailBody = emailBody.replace('##LINK##', resetLink);
 
@@ -417,7 +414,7 @@ exports.validateForgotPasswordToken = async(req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
@@ -428,11 +425,11 @@ exports.validateForgotPasswordToken = async(req, res) => {
             .select('-password')
             .then(data => {
                 if (!data) return generalHelper.response.error(res, {
-                    message: fiErrors.invalidToken.message
+                    message: appError.invalidToken.message
                 });
             
                 if (moment(data.activationTokenExpiry).isBefore(moment())) return generalHelper.response.error(res, {
-                    message: fiErrors.tokenExpired.message
+                    message: appError.tokenExpired.message
                 });
 
                 generalHelper.response.success(res, {
@@ -457,7 +454,7 @@ exports.validateForgotPasswordToken = async(req, res) => {
 exports.resetPassword = async(req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
@@ -467,11 +464,11 @@ exports.resetPassword = async(req, res) => {
         });
 
         if (!userData) return generalHelper.response.error(res, {
-            message: fiErrors.dataNotFound.message
+            message: appError.dataNotFound.message
         });
 
         const hashedNewPassword = encryptionHelper.encrypt(req.body.newPassword);
-        const updatePassword = await User.findByIdAndUpdate(req.params.userId, {
+        const updatePassword = await User.findOneAndUpdate({_id: req.params.userId}, {
             password: hashedNewPassword,
             forgotPasswordToken: null,
             forgotPasswordTokenExpiry: null
@@ -495,7 +492,7 @@ exports.resetPassword = async(req, res) => {
 exports.create = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
@@ -508,6 +505,7 @@ exports.create = (req, res) => {
     }
 
     const user = new User({
+        _id: new mongoose.Types.ObjectId(),
         email: req.body.email,
         password: hashedPassword,
         role: req.body.role,
@@ -527,17 +525,21 @@ exports.create = (req, res) => {
         })
         .catch(err => {
             generalHelper.saveErrorLog(err);
+            let errMessage = err.message;
 
             if(err.code === 11000) {
-                let errMessage;
                 const key = Object.keys(err.keyValue)[0];
 
-                if(key === 'mobileNo') errMessage = fiErrors.mobileNumberExist
-                if(key === 'email') errMessage = fiErrors.emailExist;
+                if(key === 'mobileNo') errMessage = appError.mobileNumberExist
+                if(key === 'email') errMessage = appError.emailExist;
 
-                generalHelper.response.error(res, errMessage);
+                generalHelper.response.error(res, {
+                    message: errMessage
+                });
             } else {
-                generalHelper.response.error(res, errMessage);
+                generalHelper.response.error(res, {
+                    message: errMessage
+                });
             }
         });
 };
@@ -554,14 +556,14 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    User.findById(req.params.userId)
+    User.findOne({_id: req.params.userId})
         .select(fieldsExcluded)
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
@@ -579,11 +581,11 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    User.findByIdAndUpdate(req.params.userId, {
+    User.findOneAndUpdate({_id: req.params.userId}, {
             role: req.body.role,
             name: req.body.name,
             mobileNo: req.body.mobileNo,
@@ -596,7 +598,7 @@ exports.update = (req, res) => {
         .select(fieldsExcluded)
         .then(data => {
             if (!data) return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             generalHelper.response.success(res, data)
@@ -604,7 +606,7 @@ exports.update = (req, res) => {
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             return generalHelper.response.error(res, {

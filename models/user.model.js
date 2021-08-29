@@ -1,21 +1,9 @@
 const {Schema, model} = require('mongoose');
-const constants = require('./../config/constants');
-
-let arrUserType = [];
-
-Object.keys(constants.userTypes).forEach((e, i) => {
-    arrUserType.push(constants.userTypes[e].value);
-});
-
-let arrUserAuth = [];
-
-Object.keys(constants.userAuth).forEach((e, i) => {
-    arrUserAuth.push(constants.userAuth[e].value);
-});
-
-exports.collectionName = 'user';
+const appEnum = require('./../config/enum');
+const dbCollections = require('./collections');
 
 const userSchema = Schema({
+    _id: Schema.Types.ObjectId,
     email: {
         type: String,
         unique: true,
@@ -44,13 +32,11 @@ const userSchema = Schema({
     },
     type: {
         type: String,
-        enum: arrUserType,
-        required: true
+        default: appEnum.userType.none.key
     },
     authenticationMethod: {
         type: String,
-        enum: arrUserAuth,
-        required: true
+        default: appEnum.userAuth.low.key
     },
     blocked: {
         type: Boolean,
@@ -73,8 +59,7 @@ const userSchema = Schema({
         default: false
     }
 }, {
-    collection: this.collectionName,
-    timestamps: true
+    collection: dbCollections.user.name
 });
 
-exports.userModel = model(this.collectionName, userSchema);
+module.exports = model(dbCollections.user.name, userSchema);

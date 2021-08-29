@@ -1,7 +1,5 @@
 const {Schema, model} = require('mongoose');
-const {collectionName: InsuranceCollectionName} = require('./insurance.model');
-
-exports.collectionName = 'insured';
+const dbCollections = require('./collections');
 
 const imageObj = {
     socialId: {
@@ -39,18 +37,16 @@ const imageObj = {
     }
 };
 
-const insuranceObj = {
-    insuranceId: {
-        type: Schema.Types.ObjectId,
-        ref: InsuranceCollectionName
-    }
-};
-
 const configObj = {
     images: imageObj
 };
 
 const insuredSchema = Schema({
+    _id: Schema.Types.ObjectId,
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: dbCollections.user.name
+    },
     name: {
         type: String,
         trim: true
@@ -89,15 +85,13 @@ const insuredSchema = Schema({
         type: Boolean,
         default: false
     },
-    insurances: insuranceObj,
     active: {
         type: Boolean,
         default: false
     },
     config: configObj
 }, {
-    collection: this.collectionName,
-    timestamps: true
+    collection: dbCollections.insured.name
 });
 
-exports.insuredModel = model(this.collectionName, insuredSchema);
+module.exports = model(dbCollections.insured.name, insuredSchema);

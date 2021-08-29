@@ -26,7 +26,7 @@ const iv = crypto.randomBytes(16);
 
 exports.cryptoEncrypt = (text) => {
     try {
-        let cipher = crypto.createCipheriv(algorithm, Buffer.from(config.encryption.key), iv);
+        let cipher = crypto.createCipheriv(algorithm, Buffer.from(appConfig.encryption.key), iv);
         let encrypted = cipher.update(text);
         encrypted = Buffer.concat([encrypted, cipher.final()]);
         encrypted = iv.toString('hex') + ':' + encrypted.toString('hex');
@@ -45,7 +45,7 @@ exports.cryptoDecrypt = (base64Str) => {
         let arrStr = str.split(':');
         let iv = Buffer.from(arrStr[0], 'hex');
         let encrypted = Buffer.from(arrStr[1], 'hex');
-        let decipher = crypto.createDecipheriv(algorithm, Buffer.from(config.encryption.key), iv);
+        let decipher = crypto.createDecipheriv(algorithm, Buffer.from(appConfig.encryption.key), iv);
         let decrypted = decipher.update(encrypted);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();

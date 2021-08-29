@@ -3,8 +3,9 @@ const {
     param,
     validationResult
 } = require('express-validator');
+const mongoose = require('mongoose');
 const generalHelper = require('./../helpers/general.helper');
-const {insuranceModel: Insurance} = require('./../models/insurance.model');
+const Insurance = require('./../models/insurance.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
@@ -127,7 +128,7 @@ exports.validate = (method) => {
                 body('config.smtp.username', 'SMTP username is required').notEmpty(),
                 body('config.smtp.password', 'SMTP password is required').notEmpty()
             ]
-        case 'findOne':
+        case 'findById':
             return [
                 param('insuranceId')
                     .notEmpty()
@@ -140,17 +141,18 @@ exports.create = (req, res) => {
     try {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-            message: fiErrors.isEmpty.message,
+            message: appError.isEmpty.message,
             errors: generalHelper.customValidationResult(req).array()
         });
 
         const insurance = new Insurance({
+            _id: new mongoose.Types.ObjectId(),
             name: req.body.name,
             address: req.body.address,
             email: req.body.email,
             phoneNo: req.body.phoneNo,
             pic: req.body.pic,
-            taxId: req.body.pic,
+            taxId: req.body.taxId,
             active: req.body.active,
             config: req.body.config
         });
@@ -189,14 +191,14 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findOne = (req, res) => {
+exports.findById = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Insurance.findById(req.params.insuranceId)
+    Insurance.findOne({_id: req.params.insuranceId})
         .select(fieldsExcluded)
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
@@ -214,11 +216,11 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
     const validationErrors = validationResult(req);
     if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-        message: fiErrors.isEmpty.message,
+        message: appError.isEmpty.message,
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Insurance.findByIdAndUpdate(req.params.insuranceId, {
+    Insurance.findOneAndUpdate({_id: req.params.insuranceId}, {
             name: req.body.name,
             address: req.body.address,
             email: req.body.email,
@@ -233,7 +235,7 @@ exports.update = (req, res) => {
         .select(fieldsExcluded)
         .then(data => {
             if (!data) return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             generalHelper.response.success(res, data)
@@ -241,7 +243,7 @@ exports.update = (req, res) => {
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: fiErrors.dataNotFound.message
+                message: appError.dataNotFound.message
             });
 
             return generalHelper.response.error(res, {
@@ -255,7 +257,7 @@ exports.update = (req, res) => {
 //     try {
 //         const validationErrors = validationResult(req);
 //         if(!validationErrors.isEmpty()) return generalHelper.response.badRequest(res, {
-//             message: fiErrors.isEmpty.message,
+//             message: appError.isEmpty.message,
 //             errors: generalHelper.customValidationResult(req).array()
 //         });
 

@@ -4,8 +4,7 @@ const nodemailer = require('nodemailer');
 const {
     validationResult
 } = require('express-validator');
-const config = require('./../config/config');
-const constants = require('./../config/constants');
+const appConfig = require('./../config/config');
 const logger = require('./../config/winston.config');
 
 exports.response = {
@@ -37,7 +36,7 @@ exports.saveErrorLog = err => {
 };
 
 exports.dbCurrentDateTime = () => {
-    return moment().format(constants.dbDateTimeFormat);
+    return moment().format(appEnum.dateFormat.dbDateTimeFormat);
 };
 
 exports.readFileContent = async (filename) => {
@@ -56,12 +55,12 @@ exports.readFileContent = async (filename) => {
 };
 
 exports.mailTransporter = nodemailer.createTransport({
-    host: config.smtp.host,
-    port: config.smtp.port,
-    secure: config.smtp.ssl,
+    host: appConfig.smtp.host,
+    port: appConfig.smtp.port,
+    secure: appConfig.smtp.ssl,
     auth: {
-        user: config.smtp.username,
-        pass: config.smtp.password
+        user: appConfig.smtp.username,
+        pass: appConfig.smtp.password
     },
     tls: {
         rejectUnauthorized: false

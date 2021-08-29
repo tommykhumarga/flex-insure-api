@@ -3,22 +3,22 @@ const {
 } = require('passport-headerapikey');
 const jwtStrategy = require('passport-jwt').Strategy;
 const extractJwt = require('passport-jwt').ExtractJwt;
-const config = require('./../config/config');
+const appConfig = require('./../config/config');
 const generalHelper = require('./../helpers/general.helper');
-const {userModel: User} = require('./../models/user.model');
+const User = require('./../models/user.model');
 
 module.exports = (passport) => {
     passport.use(new HeaderAPIKeyStrategy({
         header: 'apikey',
         prefix: ''
     }, false, (apiKey, done) => {
-        if (apiKey.trim() === config.api.client.secret) return done(null, true);
+        if (apiKey.trim() === appConfig.api.client.secret) return done(null, true);
         else return done(null, false);
     }));
 
     passport.use(new jwtStrategy({
         jwtFromRequest: extractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: config.encryption.jwtKey
+        secretOrKey: appConfig.encryption.jwtKey
     }, (jwtPayload, done) => {
         User.findOne({
                 _id: jwtPayload.id

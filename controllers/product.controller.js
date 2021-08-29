@@ -4,8 +4,8 @@ const {
     validationResult
 } = require('express-validator');
 const mongoose = require('mongoose');
-const generalHelper = require('./../helpers/general.helper');
-const Car = require('./../models/car.model');
+const generalHelper = require('../helpers/general.helper');
+const Product = require('../models/product.model');
 const fieldsExcluded = '-__v';
 
 exports.validate = (method) => {
@@ -15,27 +15,45 @@ exports.validate = (method) => {
                 body('insurance')
                     .notEmpty()
                     .withMessage('Insurance is required'),
-                body('cars')
+                body('seq')
                     .notEmpty()
-                    .withMessage('Cars is required')
+                    .withMessage('Sequence is required'),
+                body('type')
+                    .notEmpty()
+                    .withMessage('Product type is required'),
+                body('name')
+                    .notEmpty()
+                    .withMessage('Name is required'),
+                body('config')
+                    .notEmpty()
+                    .withMessage('Config is required')
             ]
         case 'update':
             return [
-                param('carId')
+                param('productId')
                     .notEmpty()
-                    .withMessage('Car ID is required'),
+                    .withMessage('Product ID is required'),
                 body('insurance')
                     .notEmpty()
                     .withMessage('Insurance is required'),
-                body('cars')
+                body('seq')
                     .notEmpty()
-                    .withMessage('Cars is required')
+                    .withMessage('Sequence is required'),
+                body('type')
+                    .notEmpty()
+                    .withMessage('Product type is required'),
+                body('name')
+                    .notEmpty()
+                    .withMessage('Name is required'),
+                body('config')
+                    .notEmpty()
+                    .withMessage('Config is required')
             ]
         case 'findById':
             return [
-                param('carId')
+                param('productId')
                     .notEmpty()
-                    .withMessage('Car ID is required')
+                    .withMessage('Product ID is required')
             ]
     }
 };
@@ -48,16 +66,19 @@ exports.create = (req, res) => {
             errors: generalHelper.customValidationResult(req).array()
         });
 
-        const car = new Car({
+        const product = new Product({
             _id: new mongoose.Types.ObjectId(),
             insurance: req.body.insurance,
-            cars: req.body.cars
+            seq: req.body.seq,
+            productType: req.body.productType,
+            name: req.body.name,
+            config: req.body.config
         });
 
-        car.save()
+        product.save()
             .then(data => {
                 if(!data) return generalHelper.response.error(res, {
-                    message: 'Failed to save car data'
+                    message: 'Failed to save product data'
                 });
 
                 generalHelper.response.success(res, data);
@@ -79,7 +100,7 @@ exports.create = (req, res) => {
 };
 
 exports.findAll = (req, res) => {
-    Car.find()
+    Product.find()
         .select(fieldsExcluded)
         .then(data => generalHelper.response.success(res, data))
         .catch(err => {
@@ -97,16 +118,14 @@ exports.findById = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
     
-    Car.findOne({_id: req.params.carId})
+    Product.findOne({_id: req.params.productId})
         .select(fieldsExcluded)
-        .populate('insurance', ['name'])
-        .then(data => {
-            generalHelper.response.success(res, data)
-        })
+        .populate('insurance')
+        .then(data => generalHelper.response.success(res, data))
         .catch(err => {
             generalHelper.saveErrorLog(err);
             if (err.kind === 'ObjectId') return generalHelper.response.notFound(res, {
-                message: `Car ID ${req.params.carId} not found`
+                message: `Product ID ${req.params.productId} not found`
             });
 
             return generalHelper.response.error(res, {
@@ -122,8 +141,12 @@ exports.update = (req, res) => {
         errors: generalHelper.customValidationResult(req).array()
     });
 
-    Car.findOneAndUpdate({_id: req.params.carId}, {
-            cars: req.body.cars
+    Product.findOneAndUpdate({_id: req.params.productId}, {
+            insurance: req.body.insurance,
+            seq: req.body.seq,
+            productType: req.body.productType,
+            name: req.body.name,
+            config: req.body.config
         }, {
             new: true
         })
