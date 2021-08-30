@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
-import { collectionName, UserModel } from './../models/user.model';
+import { UserModel } from './../../models/user.model';
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     let { email, name } = req.body;
