@@ -2,23 +2,33 @@ import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import logging from './config/logging';
+import mongoose from 'mongoose';
 import config from './config/config';
-import sampleRoute from './routes/sample';
+import generalHelper from './helpers/general.helper';
+import privateRoute from './routes/private.route';
 
-const NAMESPACE = 'Server';
 const app = express();
 
 /** Server protection */
 app.use(cors());
 app.use(helmet());
 
+/** Connect to MongoDB */
+mongoose
+    .connect(config.mongo.url, config.mongo.options)
+    .then((result) => {
+        console.info('Connected to MongoDB');
+    })
+    .catch((error) => {
+        console.error(error.message, error);
+    });
+
 /** Logging the request */
 app.use((req, res, next) => {
-    logging.info(NAMESPACE, `${req.method}, URL ${req.url}, IP ${req.socket.remoteAddress}`);
+    console.info(`${req.method}, URL ${req.url}, IP ${req.socket.remoteAddress}`);
 
     res.on('finish', () => {
-        logging.info(NAMESPACE, `${req.method}, URL ${req.url}, IP ${req.socket.remoteAddress}, STATUS ${res.statusCode}`);
+        console.info(`${req.method}, URL ${req.url}, IP ${req.socket.remoteAddress}, STATUS ${res.statusCode}`);
     });
 
     next();
@@ -29,7 +39,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 /** Routes */
-app.use('/sample', sampleRoute);
+app.use('/private/v1', privateRoute);
 
 /** Error handling */
 app.use((req, res, next) => {
@@ -42,4 +52,5 @@ app.use((req, res, next) => {
 
 /** Create the server */
 const httpServer = http.createServer(app);
-httpServer.listen(config.server.port, () => logging.info(NAMESPACE, `Server running on ${config.server.hostname}:${config.server.port}`));
+generalHelper.saveDebugLog(`Server running on ${config.server.hostname}:${config.server.port}`);
+httpServer.listen(config.server.port, () => console.info(`Server running on ${config.server.hostname}:${config.server.port}`));
