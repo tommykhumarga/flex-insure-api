@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
+import compression from 'compression';
 import config from './config/config';
 import generalHelper from './helpers/general.helper';
 import privateRoute from './private/routes';
@@ -12,6 +13,7 @@ const main = async () => {
     /** Server protection */
     app.use(cors());
     app.use(helmet());
+    app.use(compression());
 
     /** Logging the request */
     app.use((req, res, next) => {
