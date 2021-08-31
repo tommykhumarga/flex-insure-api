@@ -29,7 +29,7 @@ const main = async () => {
     app.use(express.json());
 
     /** Routes */
-    app.use('/private/v1', privateRoute);
+    app.use('/private', privateRoute);
 
     /** Error handling */
     app.use((req, res, next) => {

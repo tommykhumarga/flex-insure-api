@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { validationResult } from 'express-validator';
 import logger from './../lib/logger';
 
 const saveErrorLog = (err: any) => {
@@ -16,6 +17,9 @@ const response = {
     unauthorized: (res: Response, data: any) => {
         return res.status(401).json(data);
     },
+    badRequest: (res: Response, data: any) => {
+        return res.status(400).json(data);
+    },
     notFound: (res: Response, data: any) => {
         return res.status(404).json(data);
     },
@@ -26,9 +30,18 @@ const response = {
         return res.status(status).json(data);
     }
 };
+const customValidationResult = validationResult.withDefaults({
+    formatter: (error) => {
+        return {
+            param: error.param,
+            message: error.msg
+        };
+    }
+});
 
 export default {
     saveErrorLog,
     saveDebugLog,
-    response
+    response,
+    customValidationResult
 };

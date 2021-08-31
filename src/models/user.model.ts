@@ -104,10 +104,4 @@ userSchema.pre<IUser>('save', function save(next) {
     });
 });
 
-// userSchema.methods.comparePassword = (candidatePassword: string, callback: any) => {
-//     bcrypt.compare(candidatePassword, this.password, (error: Error, isMatch: boolean) => {
-//         callback(error, isMatch);
-//     });
-// };
-
 export const User: Model<IUser> = model<IUser>(collectionName, userSchema);

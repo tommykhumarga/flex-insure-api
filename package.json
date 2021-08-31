@@ -4,8 +4,8 @@
   "main": "src/server.js",
   "scripts": {
     "build": "rm -rf dist/ && prettier --write src/ && tsc",
-    "dev": "nodemon src/server.ts",
-    "start": "node dist/server.js"
+    "dev": "nodemon src/app.ts",
+    "start": "node dist/app.js"
   },
   "repository": {
     "type": "git",

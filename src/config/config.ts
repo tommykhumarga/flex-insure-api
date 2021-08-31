@@ -35,8 +35,7 @@ export default {
             socketTimeoutMS: 3000,
             keepAlive: true,
             autoIndex: false,
-            retryWrites: false,
-            autoReconnect: true
+            retryWrites: false
         }
     },
     api: {
