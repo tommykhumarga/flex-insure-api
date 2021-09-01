@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import config from './../../config/config';
+import { errorMessage } from './../../config/enum';
 import generalHelper from './../../helpers/general.helper';
 
 export const basicAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -21,8 +22,7 @@ export const basicAuth = (req: Request, res: Response, next: NextFunction) => {
     } catch (error) {
         generalHelper.saveErrorLog(error);
         return generalHelper.response.error(res, {
-            message: error.message,
-            error
+            message: errorMessage.UNKNOWN
         });
     }
 };

@@ -11,6 +11,6 @@ export enum UserAuth {
 }
 
 export enum errorMessage {
-    UNKNOWN = 'Unknown error',
+    UNKNOWN = 'An error occurred, please check application log',
     BAD_REQUEST = 'Bad request'
 }

@@ -1,12 +1,15 @@
 import crypto from 'crypto';
 import bcrypt, { hash } from 'bcrypt';
 import config from './../config/config';
+import { errorMessage } from './../config/enum';
+import generalHelper from './general.helper';
 
 export const encrypt = (str: string) => {
     try {
         return bcrypt.hashSync(str.trim(), 10);
     } catch (error) {
-        throw new Error(error);
+        generalHelper.saveErrorLog(error);
+        throw error;
     }
 };
 
@@ -14,7 +17,8 @@ export const compare = (str: string, hashed: string) => {
     try {
         return bcrypt.compareSync(hashed.trim(), hashed);
     } catch (error) {
-        throw new Error(error);
+        generalHelper.saveErrorLog(error);
+        throw error;
     }
 };
 
@@ -23,7 +27,7 @@ const iv = crypto.randomBytes(16);
 
 export const cryptoEncrypt = (str: string) => {
     try {
-        const cipher = crypto.createCipheriv(algorithm, Buffer.from(config.encryption.key), iv);
+        let cipher = crypto.createCipheriv(algorithm, Buffer.from(config.encryption.key), iv);
         let encrypted = cipher.update(str);
         encrypted = Buffer.concat([encrypted, cipher.final()]);
         const hex = iv.toString('hex') + ':' + encrypted.toString('hex');
@@ -31,7 +35,8 @@ export const cryptoEncrypt = (str: string) => {
 
         return binaryData.toString('base64');
     } catch (error) {
-        throw new Error(error);
+        generalHelper.saveErrorLog(error);
+        throw error;
     }
 };
 
@@ -48,6 +53,7 @@ export const cryptoDecrypt = (base64Str: string) => {
 
         return decrypted.toString();
     } catch (error) {
-        throw new Error(error);
+        generalHelper.saveErrorLog(error);
+        throw error;
     }
 };
