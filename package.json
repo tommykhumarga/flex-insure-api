@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
-    "build": "rm -rf dist/ && prettier --write src/ && tsc",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "lint": "eslint . --ext .ts",
+    "build": "prettier --config .prettierrc 'src/**/*.ts' --write && tsc",
     "dev": "nodemon src/app.ts",
     "start": "node dist/app.js",
     "prepare": "husky install",
