@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import CryptoJS from 'crypto-js';
 import bcrypt, { hash } from 'bcrypt';
 import config from './../config/config';
 import { errorMessage } from './../config/enum';
@@ -22,36 +22,19 @@ export const compare = (str: string, hashed: string) => {
     }
 };
 
-const algorithm = 'aes-256-cbc';
-const iv = crypto.randomBytes(16);
-
 export const cryptoEncrypt = (str: string) => {
     try {
-        let cipher = crypto.createCipheriv(algorithm, Buffer.from(config.encryption.key), iv);
-        let encrypted = cipher.update(str);
-        encrypted = Buffer.concat([encrypted, cipher.final()]);
-        const hex = iv.toString('hex') + ':' + encrypted.toString('hex');
-        const binaryData = Buffer.from(hex, 'utf8');
-
-        return binaryData.toString('base64');
+        return CryptoJS.AES.encrypt(str, config.encryption.key).toString();
     } catch (error) {
         generalHelper.saveErrorLog(error);
         throw error;
     }
 };
 
-export const cryptoDecrypt = (base64Str: string) => {
+export const cryptoDecrypt = (hashed: string) => {
     try {
-        const binaryData = Buffer.from(base64Str, 'base64');
-        const str = binaryData.toString('utf8');
-        const arrStr = str.split(':');
-        const iv = Buffer.from(arrStr[0], 'hex');
-        const encrypted = Buffer.from(arrStr[1], 'hex');
-        const decipher = crypto.createDecipheriv(algorithm, Buffer.from(config.encryption.key), iv);
-        let decrypted = decipher.update(encrypted);
-        decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-        return decrypted.toString();
+        const bytes = CryptoJS.AES.decrypt(hashed, config.encryption.key);
+        return bytes.toString(CryptoJS.enc.Utf8);
     } catch (error) {
         generalHelper.saveErrorLog(error);
         throw error;
